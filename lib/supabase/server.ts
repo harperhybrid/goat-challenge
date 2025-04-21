@@ -3,17 +3,20 @@ import { cookies } from "next/headers"
 import type { Database } from "./database.types"
 
 export async function createServerSupabaseClient() {
-  const cookieStore = cookies()
+  // Get cookies from the request
+  const cookieStore = await cookies()
 
+  // Create a Supabase client
   return createServerClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
     cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
+      async get(name) {
+        const cookie = cookieStore.get(name)
+        return cookie?.value
       },
-      set(name: string, value: string, options: Record<string, unknown>) {
+      async set(name, value, options) {
         cookieStore.set({ name, value, ...options })
       },
-      remove(name: string, options: Record<string, unknown>) {
+      async remove(name, options) {
         cookieStore.set({ name, value: "", ...options })
       },
     },
