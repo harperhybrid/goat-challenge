@@ -10,7 +10,7 @@ export default function NotFound() {
       </div>
       <h2 className="mt-6 text-3xl font-bold">404 - Page Not Found</h2>
       <p className="mt-2 text-center text-muted-foreground max-w-md">
-        The page you&apos;re looking for doesn&apos;t exist or has been moved. Let&apos;s get you back on track.
+        The page you are looking for does not exist or has been moved. Let us get you back on track.
       </p>
       <div className="mt-6 flex gap-4">
         <Button asChild variant="outline">

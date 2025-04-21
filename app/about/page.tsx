@@ -47,7 +47,7 @@ export default function AboutPage() {
             <h2 className="text-2xl font-semibold mb-4">Tiers</h2>
             <div className="grid md:grid-cols-3 gap-6 mt-4">
               <div className="border rounded-lg p-6 shadow-sm bg-card hover:shadow-md transition-shadow">
-                <h3 className="text-xl font-medium">Lil&apos; GOAT</h3>
+                <h3 className="text-xl font-medium">Lil GOAT</h3>
                 <p className="text-2xl font-bold mt-2">$50</p>
                 <p className="mt-2 text-muted-foreground">5 GOATs per week</p>
                 <p className="mt-1 text-muted-foreground">Up to $50 refund</p>
@@ -72,7 +72,7 @@ export default function AboutPage() {
           <div className="rounded-lg border bg-card p-6 shadow-sm">
             <h2 className="text-2xl font-semibold mb-4">Our Team</h2>
             <p className="text-muted-foreground mb-6">
-              GOAT Challenge was created by a team of educators, parents, and technologists who are passionate about
+              GOAT Challenge was created by a team of educators and parents who are passionate about
               helping children develop strong learning habits through gamification and positive reinforcement.
             </p>
           </div>
