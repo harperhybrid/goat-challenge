@@ -1,12 +1,13 @@
+// app/dashboard/page.tsx
 import { redirect } from "next/navigation";
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import type { Database } from "@/lib/types";
 import { getUserRoles } from "@/lib/getUserRoles";
 
 import StudentDashboard from "@/components/StudentDashboard";
 import TeacherDashboard from "@/components/TeacherDashboard";
 import AdminDashboard from "@/components/AdminDashboard";
-// Add other dashboards here if needed: ParentDashboard, SponsorDashboard, etc.
 
 export default async function DashboardPage() {
   const isDevelopment = process.env.NODE_ENV === "development";
@@ -23,12 +24,8 @@ export default async function DashboardPage() {
         <div className="bg-card rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">Your Profile</h2>
           <div className="space-y-2">
-            <p>
-              <span className="font-medium">Email:</span> dev@example.com
-            </p>
-            <p>
-              <span className="font-medium">Name:</span> Development User
-            </p>
+            <p><span className="font-medium">Email:</span> dev@example.com</p>
+            <p><span className="font-medium">Name:</span> Development User</p>
           </div>
         </div>
 
@@ -43,7 +40,9 @@ export default async function DashboardPage() {
     );
   }
 
-  const supabase = createServerComponentClient({ cookies });
+  const supabase = createServerComponentClient<Database>({
+    cookies,
+  });
 
   const {
     data: { user },
@@ -62,7 +61,6 @@ export default async function DashboardPage() {
       {roles.includes("admin") && <AdminDashboard />}
       {roles.includes("teacher") && <TeacherDashboard />}
       {roles.includes("student") && <StudentDashboard />}
-      {/* You can add more: parent, sponsor, evaluator, etc. */}
     </div>
   );
 }
