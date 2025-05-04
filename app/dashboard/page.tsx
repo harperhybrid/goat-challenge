@@ -1,7 +1,7 @@
 // app/dashboard/page.tsx
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs/edge";
 import type { Database } from "@/lib/types";
 import { getUserRoles } from "@/lib/getUserRoles";
 
