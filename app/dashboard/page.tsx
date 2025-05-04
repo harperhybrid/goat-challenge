@@ -1,9 +1,16 @@
-import { redirect } from "next/navigation"
+import { redirect } from "next/navigation";
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
+import { getUserRoles } from "@/lib/getUserRoles";
+
+import StudentDashboard from "@/components/StudentDashboard";
+import TeacherDashboard from "@/components/TeacherDashboard";
+import AdminDashboard from "@/components/AdminDashboard";
+// Add other dashboards here if needed: ParentDashboard, SponsorDashboard, etc.
 
 export default async function DashboardPage() {
-  // In development, we'll show a mock dashboard
-  const isDevelopment = process.env.NODE_ENV === "development"
-  
+  const isDevelopment = process.env.NODE_ENV === "development";
+
   if (isDevelopment) {
     return (
       <div className="container mx-auto py-10">
@@ -28,62 +35,34 @@ export default async function DashboardPage() {
         <div className="mt-8 bg-card rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">Your GOAT Challenge</h2>
           <p className="text-muted-foreground">You haven't enrolled in any challenges yet.</p>
-          <button className="mt-4 bg-primary text-primary-foreground px-4 py-2 rounded">Enroll in a Challenge</button>
+          <button className="mt-4 bg-primary text-primary-foreground px-4 py-2 rounded">
+            Enroll in a Challenge
+          </button>
         </div>
       </div>
-    )
+    );
   }
-  
-  // For production, we'll use the original code with authentication
-  try {
-    const { createServerComponentClient } = await import("@supabase/auth-helpers-nextjs")
-    const { cookies } = await import("next/headers")
-    
-    const supabase = createServerComponentClient({ cookies })
 
-    // Check if user is authenticated
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+  const supabase = createServerComponentClient({ cookies });
 
-    if (!session) {
-      // Redirect to login if not authenticated
-      redirect("/login")
-    }
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    // Get user details
-    const { data: user } = await supabase.auth.getUser()
-
-    return (
-      <div className="container mx-auto py-10">
-        <h1 className="text-3xl font-bold mb-6">Welcome to Your Dashboard</h1>
-
-        <div className="bg-card rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Your Profile</h2>
-          <div className="space-y-2">
-            <p>
-              <span className="font-medium">Email:</span> {user?.user?.email}
-            </p>
-            <p>
-              <span className="font-medium">Name:</span> {user?.user?.user_metadata?.full_name || "Not provided"}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-8 bg-card rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Your GOAT Challenge</h2>
-          <p className="text-muted-foreground">You haven't enrolled in any challenges yet.</p>
-          <button className="mt-4 bg-primary text-primary-foreground px-4 py-2 rounded">Enroll in a Challenge</button>
-        </div>
-      </div>
-    )
-  } catch (error) {
-    console.error("Error in dashboard:", error)
-    return (
-      <div className="container mx-auto py-10">
-        <h1 className="text-3xl font-bold mb-6">Error Loading Dashboard</h1>
-        <p>There was an error loading your dashboard. Please try again later.</p>
-      </div>
-    )
+  if (!user) {
+    redirect("/login");
   }
+
+  const roles = await getUserRoles(user.id);
+
+  return (
+    <div className="container mx-auto py-10">
+      <h1 className="text-3xl font-bold mb-6">Welcome to Your Dashboard</h1>
+
+      {roles.includes("admin") && <AdminDashboard />}
+      {roles.includes("teacher") && <TeacherDashboard />}
+      {roles.includes("student") && <StudentDashboard />}
+      {/* You can add more: parent, sponsor, evaluator, etc. */}
+    </div>
+  );
 }
