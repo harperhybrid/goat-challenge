@@ -1,7 +1,6 @@
-// ✅ 1. lib/supabase/server.ts
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
-import type { Database } from "@/lib/supabase/database.types"
+import type { Database } from "./database.types"
 
 export async function createClient() {
   const cookieStore = cookies()
@@ -20,7 +19,9 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             })
           } catch {
-            // Safe to ignore in Server Components
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
           }
         },
       },
