@@ -1,45 +1,46 @@
-"use client"
+/*
+ * File: src/components/auth/google-sign-in-button.tsx
+ */
+"use client";
 
-import { createBrowserClient } from "@supabase/ssr"
-import { useState } from "react"
+import { createBrowserClient } from "@supabase/ssr";
+import { useState } from "react";
 
-// Create a singleton client to prevent multiple instances
-let supabaseClient: ReturnType<typeof createBrowserClient> | null = null
+// Singleton pattern to reuse Supabase client
+let supabaseClient: ReturnType<typeof createBrowserClient> | null = null;
 
 function getSupabaseClient() {
   if (!supabaseClient) {
     supabaseClient = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    )
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
   }
-  return supabaseClient
+  return supabaseClient;
 }
 
 export function GoogleSignInButton() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSignIn = async () => {
     try {
-      setIsLoading(true)
-      const supabase = getSupabaseClient()
+      setIsLoading(true);
+      const supabase = getSupabaseClient();
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
-      })
+      });
 
-      if (error) {
-        console.error("OAuth sign-in error:", error.message)
-      }
+      if (error) console.error("OAuth sign-in error:", error.message);
     } catch (error) {
-      console.error("Unexpected error:", error)
+      console.error("Unexpected error:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <button
@@ -49,5 +50,5 @@ export function GoogleSignInButton() {
     >
       {isLoading ? "Signing in..." : "Sign in with Google"}
     </button>
-  )
+  );
 }

@@ -1,24 +1,29 @@
+// ✅ 1. lib/supabase/server.ts
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
-import type { Database } from "./database.types"
+import type { Database } from "@/lib/supabase/database.types"
 
-export async function createServerSupabaseClient() {
-  // Get cookies from the request
-  const cookieStore = await cookies()
+export async function createClient() {
+  const cookieStore = cookies()
 
-  // Create a Supabase client
-  return createServerClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
-    cookies: {
-      async get(name) {
-        const cookie = cookieStore.get(name)
-        return cookie?.value
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options)
+            })
+          } catch {
+            // Safe to ignore in Server Components
+          }
+        },
       },
-      async set(name, value, options) {
-        cookieStore.set({ name, value, ...options })
-      },
-      async remove(name, options) {
-        cookieStore.set({ name, value: "", ...options })
-      },
-    },
-  })
+    }
+  )
 }
