@@ -10,12 +10,22 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get("code")
 
   if (code) {
+    const cookieStore = cookies()
     const supabase = createRouteHandlerClient<Database>({
-      cookies: () => cookies()
+      cookies: () => cookieStore,
     })
 
-    await supabase.auth.exchangeCodeForSession(code)
+    // Exchange the code for a session
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+
+    // Log for debugging (remove in production)
+    if (error) {
+      console.error("Auth callback error:", error)
+    } else {
+      console.log("Auth callback successful")
+    }
   }
 
-  return NextResponse.redirect(requestUrl.origin)
+  // Redirect to dashboard after successful login
+  return NextResponse.redirect(new URL("/dashboard", requestUrl.origin))
 }
