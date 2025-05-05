@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 
@@ -11,7 +11,7 @@ export default async function DashboardPage() {
     allCookies.map((c) => c.name),
   )
 
-  const supabase = await createClient()
+  const supabase = await createServerClient()
 
   // Get the session
   const {

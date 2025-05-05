@@ -1,6 +1,6 @@
 "use client"
 
-import { createClient } from "@/lib/supabase/client"
+import { createBrowserClient } from "@/lib/supabase"
 import { useState } from "react"
 
 export function GoogleSignInButton() {
@@ -12,7 +12,7 @@ export function GoogleSignInButton() {
       setIsLoading(true)
       setError(null)
 
-      const supabase = createClient()
+      const supabase = createBrowserClient()
 
       // Make sure we're using the correct callback URL
       const callbackUrl = `${window.location.origin}/auth/callback`
