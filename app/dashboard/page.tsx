@@ -12,16 +12,37 @@ export default async function DashboardPage() {
   // Log for debugging (remove in production)
   console.log("Session check:", session ? "Session exists" : "No session")
 
+  if (session) {
+    console.log("User ID:", session.user.id)
+    console.log("User email:", session.user.email)
+    console.log("Session expires at:", new Date(session.expires_at! * 1000).toISOString())
+  } else {
+    console.log("No session found - checking cookies...")
+
+    // This will help debug if cookies exist but session isn't being recognized
+    const cookieStore = await import("next/headers").then((mod) => mod.cookies())
+    const allCookies = cookieStore.getAll()
+    console.log(
+      "All cookies:",
+      allCookies.map((c) => c.name),
+    )
+
+    const supabaseCookies = allCookies.filter((c) => c.name.startsWith("sb-"))
+    if (supabaseCookies.length > 0) {
+      console.log("Supabase cookies exist but session not recognized")
+    } else {
+      console.log("No Supabase cookies found")
+    }
+  }
+
   // Redirect if no session
   if (!session) {
     // Add a query parameter to help with debugging
-    redirect("/login?reason=no_session")
+    redirect("/login?reason=no_session_in_dashboard")
   }
 
   // Now we know we have a session, get the user
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user } = session
 
   // Fetch some data for the dashboard
   // Replace "items" with an actual table from your database
@@ -37,6 +58,13 @@ export default async function DashboardPage() {
 
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold mb-4">Welcome, {user?.email}</h2>
+
+        <div className="mb-6 p-4 bg-gray-50 rounded-md">
+          <h3 className="text-md font-medium mb-2">Session Information</h3>
+          <p className="text-sm">User ID: {user.id}</p>
+          <p className="text-sm">Email: {user.email}</p>
+          <p className="text-sm">Session expires: {new Date(session.expires_at! * 1000).toLocaleString()}</p>
+        </div>
 
         <div className="mt-6">
           <h3 className="text-lg font-medium mb-3">Your Items</h3>
