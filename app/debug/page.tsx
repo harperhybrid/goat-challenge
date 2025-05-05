@@ -2,9 +2,10 @@ import { createClient } from "@/lib/supabase/server"
 import { cookies } from "next/headers"
 
 export default async function DebugPage() {
-  const supabase = await createClient()
   const cookieStore = cookies()
   const allCookies = cookieStore.getAll()
+
+  const supabase = await createClient()
 
   // Get session
   const {

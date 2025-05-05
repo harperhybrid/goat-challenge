@@ -7,16 +7,15 @@ export const dynamic = "force-dynamic"
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get("code")
-  const origin = requestUrl.origin
 
   if (!code) {
     console.error("No code in callback URL")
-    return NextResponse.redirect(new URL(`/login?error=no_code&from=callback`, origin))
+    return NextResponse.redirect(new URL("/login?error=no_code", requestUrl.origin))
   }
 
   try {
     // Create a response early so we can modify its cookies
-    const response = NextResponse.redirect(new URL("/dashboard", origin))
+    const response = NextResponse.redirect(new URL("/dashboard", requestUrl.origin))
 
     // Create a cookie handler that sets cookies on the response
     const cookieStore = cookies()
@@ -30,13 +29,21 @@ export async function GET(request: Request) {
           },
           set(name, value, options) {
             // Set cookie in both the cookieStore and the response
-            cookieStore.set({ name, value, ...options })
+            try {
+              cookieStore.set({ name, value, ...options })
+            } catch (error) {
+              console.log("Error setting cookie in cookieStore:", error)
+            }
             response.cookies.set({ name, value, ...options })
           },
           remove(name, options) {
             // Remove cookie from both the cookieStore and the response
-            cookieStore.set({ name, value: "", ...options })
-            response.cookies.delete({ name, ...options })
+            try {
+              cookieStore.set({ name, value: "", ...options })
+            } catch (error) {
+              console.log("Error removing cookie from cookieStore:", error)
+            }
+            response.cookies.delete(name)
           },
         },
       },
@@ -48,8 +55,18 @@ export async function GET(request: Request) {
     if (error) {
       console.error("Error exchanging code for session:", error.message)
       return NextResponse.redirect(
-        new URL(`/login?error=exchange_error&message=${encodeURIComponent(error.message)}&from=callback`, origin),
+        new URL(`/login?error=exchange_error&message=${encodeURIComponent(error.message)}`, requestUrl.origin),
       )
+    }
+
+    // Verify the session was created
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    if (!session) {
+      console.error("Session not created after code exchange")
+      return NextResponse.redirect(new URL("/login?error=no_session_after_exchange", requestUrl.origin))
     }
 
     // Log all cookies for debugging
@@ -66,13 +83,15 @@ export async function GET(request: Request) {
 
     if (!hasSessionCookie) {
       console.error("Session cookie not set in response")
-      return NextResponse.redirect(new URL(`/login?error=no_session_cookie&from=callback`, origin))
+      return NextResponse.redirect(new URL("/login?error=no_session_cookie", requestUrl.origin))
     }
 
     console.log("Auth callback successful, redirecting to dashboard")
+    console.log("User ID:", session.user.id)
+
     return response
   } catch (error) {
     console.error("Unexpected error in auth callback:", error)
-    return NextResponse.redirect(new URL(`/login?error=unexpected&from=callback`, origin))
+    return NextResponse.redirect(new URL("/login?error=unexpected", requestUrl.origin))
   }
 }

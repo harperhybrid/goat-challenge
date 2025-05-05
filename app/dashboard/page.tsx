@@ -1,15 +1,24 @@
 import { createClient } from "@/lib/supabase/server"
+import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 
 export default async function DashboardPage() {
+  // Log all cookies for debugging
+  const cookieStore = cookies()
+  const allCookies = cookieStore.getAll()
+  console.log(
+    "All cookies:",
+    allCookies.map((c) => c.name),
+  )
+
   const supabase = await createClient()
 
-  // Get the session (not just the user)
+  // Get the session
   const {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // Log for debugging (remove in production)
+  // Log for debugging
   console.log("Session check:", session ? "Session exists" : "No session")
 
   if (session) {
@@ -18,14 +27,6 @@ export default async function DashboardPage() {
     console.log("Session expires at:", new Date(session.expires_at! * 1000).toISOString())
   } else {
     console.log("No session found - checking cookies...")
-
-    // This will help debug if cookies exist but session isn't being recognized
-    const cookieStore = await import("next/headers").then((mod) => mod.cookies())
-    const allCookies = cookieStore.getAll()
-    console.log(
-      "All cookies:",
-      allCookies.map((c) => c.name),
-    )
 
     const supabaseCookies = allCookies.filter((c) => c.name.startsWith("sb-"))
     if (supabaseCookies.length > 0) {
