@@ -1,3 +1,5 @@
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+
 export type Role = "student" | "teacher" | "parent" | "admin"
 
 export type Tier = "lil_goat" | "grinder_goat" | "boss_goat"

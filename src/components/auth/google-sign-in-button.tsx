@@ -1,54 +1,63 @@
-/*
- * File: src/components/auth/google-sign-in-button.tsx
- */
-"use client";
+"use client"
 
-import { createBrowserClient } from "@supabase/ssr";
-import { useState } from "react";
-
-// Singleton pattern to reuse Supabase client
-let supabaseClient: ReturnType<typeof createBrowserClient> | null = null;
-
-function getSupabaseClient() {
-  if (!supabaseClient) {
-    supabaseClient = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-  }
-  return supabaseClient;
-}
+import { createBrowserClient } from "@supabase/ssr"
+import { useState } from "react"
 
 export function GoogleSignInButton() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSignIn = async () => {
     try {
-      setIsLoading(true);
-      const supabase = getSupabaseClient();
+      setIsLoading(true)
+      setError(null)
+
+      // Create a fresh client each time to avoid stale state
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      )
+
+      // Make sure we're using the correct callback URL
+      const callbackUrl = `${window.location.origin}/auth/callback`
+      console.log("Using callback URL:", callbackUrl)
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: callbackUrl,
+          queryParams: {
+            // Force consent screen to appear every time
+            prompt: "consent",
+            // Request offline access (for refresh token)
+            access_type: "offline",
+          },
         },
-      });
+      })
 
-      if (error) console.error("OAuth sign-in error:", error.message);
-    } catch (error) {
-      console.error("Unexpected error:", error);
+      if (error) {
+        console.error("OAuth sign-in error:", error.message)
+        setError(error.message)
+      }
+    } catch (error: any) {
+      console.error("Unexpected error:", error)
+      setError(error?.message || "An unexpected error occurred")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
-    <button
-      onClick={handleSignIn}
-      disabled={isLoading}
-      className="w-full bg-black text-white py-2 px-4 rounded hover:bg-gray-900 disabled:opacity-50"
-    >
-      {isLoading ? "Signing in..." : "Sign in with Google"}
-    </button>
-  );
+    <div className="w-full">
+      <button
+        onClick={handleSignIn}
+        disabled={isLoading}
+        className="w-full bg-black text-white py-2 px-4 rounded hover:bg-gray-900 disabled:opacity-50"
+      >
+        {isLoading ? "Signing in..." : "Sign in with Google"}
+      </button>
+
+      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+    </div>
+  )
 }
