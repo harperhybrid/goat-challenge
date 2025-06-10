@@ -1,16 +1,15 @@
 import { createBrowserClient } from "@supabase/ssr"
 import type { Database } from "./database.types"
 
-// Create a singleton to prevent multiple instances
-let supabaseClient: ReturnType<typeof createBrowserClient<Database>> | null = null
+let client: ReturnType<typeof createBrowserClient<Database>> | undefined
 
 export function createClient() {
-  if (supabaseClient === null) {
-    supabaseClient = createBrowserClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    )
-  }
+  if (client) return client
 
-  return supabaseClient
+  client = createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+
+  return client
 }

@@ -1,6 +1,6 @@
 // app/page.tsx
 import Link from "next/link"
-import { HeroIllustration } from "@/components/hero-illustration"
+import HeroIllustration from "@/components/hero-illustration"
 
 export default function Home() {
   return (
