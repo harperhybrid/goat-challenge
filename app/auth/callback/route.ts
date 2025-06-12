@@ -14,42 +14,26 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Create a response early so we can modify its cookies
     const response = NextResponse.redirect(new URL("/dashboard", requestUrl.origin))
 
-    // Create a cookie handler that sets cookies on the response
-    const cookieStore = cookies()
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
           get(name) {
-            return cookieStore.get(name)?.value
+            return cookies().get(name)?.value
           },
           set(name, value, options) {
-            // Set cookie in both the cookieStore and the response
-            try {
-              cookieStore.set({ name, value, ...options })
-            } catch (error) {
-              console.log("Error setting cookie in cookieStore:", error)
-            }
             response.cookies.set({ name, value, ...options })
           },
           remove(name, options) {
-            // Remove cookie from both the cookieStore and the response
-            try {
-              cookieStore.set({ name, value: "", ...options })
-            } catch (error) {
-              console.log("Error removing cookie from cookieStore:", error)
-            }
             response.cookies.delete(name)
           },
         },
       },
     )
 
-    // Exchange the code for a session
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (error) {
@@ -59,7 +43,6 @@ export async function GET(request: Request) {
       )
     }
 
-    // Verify the session was created
     const {
       data: { session },
     } = await supabase.auth.getSession()
@@ -69,14 +52,7 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL("/login?error=no_session_after_exchange", requestUrl.origin))
     }
 
-    // Log all cookies for debugging
     const allCookies = response.cookies.getAll()
-    console.log(
-      "Cookies in response:",
-      allCookies.map((c) => c.name),
-    )
-
-    // Check if the session cookie was set
     const hasSessionCookie = allCookies.some(
       (cookie) => cookie.name.startsWith("sb-") && !cookie.name.includes("code-verifier"),
     )

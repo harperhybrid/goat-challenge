@@ -4,17 +4,28 @@ import { createClient } from "@/lib/supabase/client"
 
 export default function GoogleSignInButton() {
   const handleSignIn = async () => {
-    const supabase = createClient()
+    console.log("🔵 Button clicked!")
+    
+    try {
+      const supabase = createClient()
+      console.log("🔵 Supabase client created")
+      
+      console.log("🔵 Starting OAuth with redirect to:", `${window.location.origin}/auth/callback`)
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
-
-    if (error) {
-      console.error("Error signing in:", error)
+      if (error) {
+        console.error("🔴 Error signing in:", error)
+      } else {
+        console.log("🟢 OAuth request successful")
+      }
+    } catch (err) {
+      console.error("🔴 Unexpected error:", err)
     }
   }
 
